@@ -1,6 +1,7 @@
 -- salons/services: public read, write restricted to the owning salon's
 -- owner — another owner cannot touch someone else's salon.
 begin;
+create extension if not exists pgtap;
 select plan(4);
 
 insert into auth.users (

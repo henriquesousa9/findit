@@ -1,6 +1,7 @@
 -- Staff invite flow: inviting only creates a pending row (no role change);
 -- only the invited person can accept; accepting is what promotes the role.
 begin;
+create extension if not exists pgtap;
 select plan(8);
 
 insert into auth.users (

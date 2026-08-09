@@ -1,6 +1,7 @@
 -- RLS on profiles: a user can read/manage only their own row, and can never
 -- change their own role via a direct update (self-escalation protection).
 begin;
+create extension if not exists pgtap;
 select plan(3);
 
 insert into auth.users (

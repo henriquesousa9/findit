@@ -3,6 +3,7 @@
 -- different staff can be booked at the same time, but the same staff can't
 -- be double-booked.
 begin;
+create extension if not exists pgtap;
 select plan(6);
 
 insert into auth.users (
