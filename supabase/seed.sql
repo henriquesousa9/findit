@@ -1,0 +1,3 @@
+-- Intentionally empty. Referenced by supabase/config.toml ([db.seed]
+-- sql_paths) — required to exist for `supabase db reset` / `supabase test db`
+-- to run, even with no seed data to load.
