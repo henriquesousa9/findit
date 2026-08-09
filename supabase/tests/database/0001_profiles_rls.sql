@@ -28,8 +28,14 @@ select is(
   'a user cannot see another user''s profile'
 );
 
+-- 42501 = insufficient_privilege: rejected by the policy's WITH CHECK, not
+-- by some unrelated error. throws_ok's 4-arg form is (sql, errcode, errmsg,
+-- description) — the 2-arg form treats its second argument as the *expected
+-- error message*, which is not what a description is for.
 select throws_ok(
   $$ update public.profiles set role = 'admin' where id = '11111111-1111-1111-1111-111111111111' $$,
+  '42501',
+  null,
   'a user cannot change their own role via a direct update'
 );
 

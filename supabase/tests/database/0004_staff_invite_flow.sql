@@ -30,8 +30,12 @@ values ('a9111111-1111-1111-1111-111111111111', 'f1111111-1111-1111-1111-1111111
 -- an unrelated owner cannot invite staff into someone else's salon
 set local request.jwt.claim.sub = 'f2222222-2222-2222-2222-222222222222';
 
+-- P0001 = raise_exception, i.e. one of the RPC's own business-rule checks
+-- rather than an incidental failure.
 select throws_ok(
   $$ select public.invite_staff_member('a9111111-1111-1111-1111-111111111111', 'pgtap-invite-candidate@test.local') $$,
+  'P0001',
+  null,
   'a non-owner cannot invite staff into another owner''s salon'
 );
 
@@ -40,6 +44,8 @@ set local request.jwt.claim.sub = 'f1111111-1111-1111-1111-111111111111';
 
 select throws_ok(
   $$ select public.invite_staff_member('a9111111-1111-1111-1111-111111111111', 'pgtap-invite-owner2@test.local') $$,
+  'P0001',
+  null,
   'inviting an account that is already an owner is rejected'
 );
 
@@ -54,6 +60,11 @@ select is(
   'the new staff row starts as pending'
 );
 
+-- Read the candidate's role *as the candidate*: profiles RLS only exposes
+-- your own row, so checking this while acting as the owner would always
+-- come back NULL regardless of the real value.
+set local request.jwt.claim.sub = 'f3333333-3333-3333-3333-333333333333';
+
 select is(
   (select role::text from public.profiles where id = 'f3333333-3333-3333-3333-333333333333'),
   'client',
@@ -67,6 +78,8 @@ select throws_ok(
   $$ select public.accept_staff_invite(
        (select id from public.staff where salon_id = 'a9111111-1111-1111-1111-111111111111' and profile_id = 'f3333333-3333-3333-3333-333333333333')
      ) $$,
+  'P0001',
+  null,
   'a bystander cannot accept someone else''s invite'
 );
 

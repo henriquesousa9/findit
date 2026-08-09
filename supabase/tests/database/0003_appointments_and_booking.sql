@@ -58,6 +58,8 @@ select throws_ok(
        'e3333333-3333-3333-3333-333333333333',
        now() - interval '1 day'
      ) $$,
+  'P0001',
+  null,
   'booking in the past is rejected'
 );
 
@@ -68,7 +70,9 @@ select throws_ok(
        'e3333333-3333-3333-3333-333333333333',
        now() + interval '1 day'
      ) $$,
-  'double-booking the same staff at the same time is rejected'
+  '23P01',
+  null,
+  'double-booking the same staff at the same time is rejected (exclusion constraint)'
 );
 
 select lives_ok(
@@ -95,6 +99,8 @@ select throws_ok(
        'd1111111-1111-1111-1111-111111111111',
        now() + interval '2 days'
      ) $$,
+  'P0001',
+  null,
   'booking a staff id that does not belong to the salon is rejected'
 );
 

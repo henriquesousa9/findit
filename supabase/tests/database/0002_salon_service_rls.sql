@@ -35,14 +35,23 @@ select is(
   'salons are publicly readable, even by a different owner'
 );
 
-select throws_ok(
-  $$ update public.salons set name = 'Hijacked' where id = 'b1111111-1111-1111-1111-111111111111' $$,
-  'an owner cannot update another owner''s salon'
+-- An UPDATE blocked by a policy's USING clause doesn't raise — the row is
+-- simply invisible to it, so it matches nothing. The security property to
+-- assert is that the value is unchanged, not that an error was thrown.
+update public.salons set name = 'Hijacked' where id = 'b1111111-1111-1111-1111-111111111111';
+
+select is(
+  (select name from public.salons where id = 'b1111111-1111-1111-1111-111111111111'),
+  'Salon One',
+  'an owner cannot update another owner''s salon (update affects no rows)'
 );
 
+-- An INSERT, by contrast, does raise: it fails the policy's WITH CHECK.
 select throws_ok(
   $$ insert into public.services (salon_id, name, duration_minutes, price_cents)
      values ('b1111111-1111-1111-1111-111111111111', 'Sneaky service', 15, 500) $$,
+  '42501',
+  null,
   'an owner cannot add a service to another owner''s salon'
 );
 
