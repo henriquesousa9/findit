@@ -7,6 +7,7 @@ export type OwnerAppointment = {
   ends_at: string;
   status: "pending" | "confirmed" | "cancelled" | "completed";
   services: { name: string; price_cents: number } | null;
+  staff: { full_name: string } | null;
 };
 
 // RLS scopes appointments to the salon owned by the caller — no extra
@@ -19,7 +20,7 @@ export function useOwnerAppointments(salonId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("appointments")
-        .select("id, starts_at, ends_at, status, services(name, price_cents)")
+        .select("id, starts_at, ends_at, status, services(name, price_cents), staff(full_name)")
         .eq("salon_id", salonId as string)
         .order("starts_at", { ascending: false });
       if (error) throw error;

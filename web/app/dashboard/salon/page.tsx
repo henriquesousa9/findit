@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useMySalon, useUpsertMySalon, type Salon } from "@/lib/hooks/useMySalon";
 import { useUploadSalonPhoto } from "@/lib/hooks/useSalonPhotos";
+import { errorMessage } from "@/lib/errorMessage";
 
 export default function SalonPage() {
   const { data: salon, isLoading } = useMySalon();
@@ -33,7 +34,7 @@ function SalonForm({ salon }: { salon: Salon | null }) {
     try {
       await uploadPhoto.mutateAsync({ salonId: salon.id, file });
     } catch (err) {
-      setPhotoError(err instanceof Error ? err.message : "Erro ao enviar foto.");
+      setPhotoError(errorMessage(err, "Erro ao enviar foto."));
     } finally {
       e.target.value = "";
     }
@@ -55,7 +56,7 @@ function SalonForm({ salon }: { salon: Salon | null }) {
       });
       setMessage({ type: "ok", text: "Salão guardado." });
     } catch (err) {
-      setMessage({ type: "error", text: err instanceof Error ? err.message : "Tenta novamente." });
+      setMessage({ type: "error", text: errorMessage(err) });
     }
   }
 

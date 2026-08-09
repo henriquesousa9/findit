@@ -47,6 +47,7 @@ export default function AppointmentsPage() {
                   hour: "2-digit",
                   minute: "2-digit",
                 })}
+                {a.staff ? ` · com ${a.staff.full_name}` : ""}
               </p>
             </div>
             <div className="flex items-center gap-3">

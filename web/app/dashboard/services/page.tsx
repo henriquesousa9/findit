@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useMySalon } from "@/lib/hooks/useMySalon";
 import { useSalonServices, useCreateService, useDeleteService, type Service } from "@/lib/hooks/useServices";
 import { useUploadServicePhoto } from "@/lib/hooks/useSalonPhotos";
+import { errorMessage } from "@/lib/errorMessage";
 
 export default function ServicesPage() {
   const { data: salon, isLoading: loadingSalon } = useMySalon();
@@ -29,7 +30,7 @@ export default function ServicesPage() {
       await createService.mutateAsync({ name: name.trim(), durationMinutes, priceCents });
       setName("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Tenta novamente.");
+      setError(errorMessage(err));
     }
   }
 

@@ -1,16 +1,26 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useMySalon } from "@/lib/hooks/useMySalon";
+import { useSalonStaff } from "@/lib/hooks/useStaff";
 import { useSalonAvailability, useCreateAvailability, useDeleteAvailability } from "@/lib/hooks/useAvailability";
+import { errorMessage } from "@/lib/errorMessage";
 
 const WEEKDAYS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 
 export default function SchedulePage() {
   const { data: salon, isLoading: loadingSalon } = useMySalon();
-  const { data: availability, isLoading: loadingAvailability } = useSalonAvailability(salon?.id);
-  const createAvailability = useCreateAvailability(salon?.id ?? "");
-  const deleteAvailability = useDeleteAvailability(salon?.id ?? "");
+  const { data: staff, isLoading: loadingStaff } = useSalonStaff(salon?.id);
+
+  // Derive the selection rather than syncing it in an effect: until the user
+  // picks someone, fall back to the first staff member once they load.
+  const [selectedStaffId, setSelectedStaffId] = useState<string | undefined>(undefined);
+  const staffId = selectedStaffId ?? staff?.[0]?.id;
+
+  const { data: availability, isLoading: loadingAvailability } = useSalonAvailability(salon?.id, staffId);
+  const createAvailability = useCreateAvailability(salon?.id ?? "", staffId ?? "");
+  const deleteAvailability = useDeleteAvailability(salon?.id ?? "", staffId ?? "");
 
   const [weekday, setWeekday] = useState(1);
   const [startTime, setStartTime] = useState("09:00");
@@ -28,18 +38,50 @@ export default function SchedulePage() {
     try {
       await createAvailability.mutateAsync({ weekday, startTime: `${startTime}:00`, endTime: `${endTime}:00` });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Tenta novamente.");
+      setError(errorMessage(err));
     }
   }
 
-  if (loadingSalon) return <p className="text-neutral-500">A carregar...</p>;
+  if (loadingSalon || loadingStaff) return <p className="text-neutral-500">A carregar...</p>;
   if (!salon) return <p className="text-neutral-500">Cria primeiro o teu salão em &quot;Salão&quot;.</p>;
+
+  // Availability is per staff member, so there's nothing to schedule until
+  // the salon has at least one.
+  if (!staff || staff.length === 0) {
+    return (
+      <div className="max-w-2xl">
+        <h1 className="mb-6 text-2xl font-bold">Horário</h1>
+        <p className="text-neutral-500">
+          Adiciona primeiro um profissional em{" "}
+          <Link href="/dashboard/staff" className="font-medium text-neutral-900 underline">
+            Staff
+          </Link>{" "}
+          — o horário é definido por profissional.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl">
       <h1 className="mb-6 text-2xl font-bold">Horário</h1>
 
       <form onSubmit={handleAdd} className="mb-6 flex flex-wrap items-end gap-3 rounded-xl border border-neutral-200 bg-white p-4">
+        <div>
+          <label className="mb-1 block text-xs font-medium text-neutral-700">Profissional</label>
+          <select
+            value={staffId ?? ""}
+            onChange={(e) => setSelectedStaffId(e.target.value)}
+            className="rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900"
+          >
+            {staff.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.full_name}
+                {s.status === "pending" ? " (convite pendente)" : ""}
+              </option>
+            ))}
+          </select>
+        </div>
         <div>
           <label className="mb-1 block text-xs font-medium text-neutral-700">Dia</label>
           <select

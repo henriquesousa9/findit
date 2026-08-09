@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/hooks/useAuth";
 const LINKS = [
   { href: "/dashboard", label: "Visão geral" },
   { href: "/dashboard/salon", label: "Salão" },
+  { href: "/dashboard/staff", label: "Staff" },
   { href: "/dashboard/services", label: "Serviços" },
   { href: "/dashboard/schedule", label: "Horário" },
   { href: "/dashboard/appointments", label: "Agendamentos" },
