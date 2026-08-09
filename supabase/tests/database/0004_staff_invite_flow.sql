@@ -8,13 +8,13 @@ insert into auth.users (
   email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data
 ) values
   ('f1111111-1111-1111-1111-111111111111', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-   'pgtap-invite-owner1@test.local', crypt('password123', gen_salt('bf')), now(), now(), now(), '{}', '{}'),
+   'pgtap-invite-owner1@test.local', 'test_encrypted_password_not_real', now(), now(), now(), '{}', '{}'),
   ('f2222222-2222-2222-2222-222222222222', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-   'pgtap-invite-owner2@test.local', crypt('password123', gen_salt('bf')), now(), now(), now(), '{}', '{}'),
+   'pgtap-invite-owner2@test.local', 'test_encrypted_password_not_real', now(), now(), now(), '{}', '{}'),
   ('f3333333-3333-3333-3333-333333333333', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-   'pgtap-invite-candidate@test.local', crypt('password123', gen_salt('bf')), now(), now(), now(), '{}', '{}'),
+   'pgtap-invite-candidate@test.local', 'test_encrypted_password_not_real', now(), now(), now(), '{}', '{}'),
   ('f4444444-4444-4444-4444-444444444444', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-   'pgtap-invite-bystander@test.local', crypt('password123', gen_salt('bf')), now(), now(), now(), '{}', '{}');
+   'pgtap-invite-bystander@test.local', 'test_encrypted_password_not_real', now(), now(), now(), '{}', '{}');
 
 update public.profiles set role = 'owner' where id in (
   'f1111111-1111-1111-1111-111111111111', 'f2222222-2222-2222-2222-222222222222'

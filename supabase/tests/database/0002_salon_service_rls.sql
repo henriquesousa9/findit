@@ -8,9 +8,9 @@ insert into auth.users (
   email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data
 ) values
   ('a1111111-1111-1111-1111-111111111111', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-   'pgtap-owner1@test.local', crypt('password123', gen_salt('bf')), now(), now(), now(), '{}', '{}'),
+   'pgtap-owner1@test.local', 'test_encrypted_password_not_real', now(), now(), now(), '{}', '{}'),
   ('a2222222-2222-2222-2222-222222222222', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-   'pgtap-owner2@test.local', crypt('password123', gen_salt('bf')), now(), now(), now(), '{}', '{}');
+   'pgtap-owner2@test.local', 'test_encrypted_password_not_real', now(), now(), now(), '{}', '{}');
 
 update public.profiles set role = 'owner' where id in (
   'a1111111-1111-1111-1111-111111111111', 'a2222222-2222-2222-2222-222222222222'

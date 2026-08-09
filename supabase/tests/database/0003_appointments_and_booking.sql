@@ -10,13 +10,13 @@ insert into auth.users (
   email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data
 ) values
   ('d1111111-1111-1111-1111-111111111111', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-   'pgtap-booking-owner@test.local', crypt('password123', gen_salt('bf')), now(), now(), now(), '{}', '{}'),
+   'pgtap-booking-owner@test.local', 'test_encrypted_password_not_real', now(), now(), now(), '{}', '{}'),
   ('d2222222-2222-2222-2222-222222222222', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-   'pgtap-booking-client@test.local', crypt('password123', gen_salt('bf')), now(), now(), now(), '{}', '{}'),
+   'pgtap-booking-client@test.local', 'test_encrypted_password_not_real', now(), now(), now(), '{}', '{}'),
   ('d3333333-3333-3333-3333-333333333333', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-   'pgtap-staff1@test.local', crypt('password123', gen_salt('bf')), now(), now(), now(), '{}', '{}'),
+   'pgtap-staff1@test.local', 'test_encrypted_password_not_real', now(), now(), now(), '{}', '{}'),
   ('d4444444-4444-4444-4444-444444444444', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-   'pgtap-staff2@test.local', crypt('password123', gen_salt('bf')), now(), now(), now(), '{}', '{}');
+   'pgtap-staff2@test.local', 'test_encrypted_password_not_real', now(), now(), now(), '{}', '{}');
 
 update public.profiles set role = 'owner' where id = 'd1111111-1111-1111-1111-111111111111';
 update public.profiles set role = 'staff' where id in (
