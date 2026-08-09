@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "findit-web",
+      "runtimeExecutable": "C:\\Users\\henri\\Desktop\\FindIt\\.claude\\run-web.bat",
+      "runtimeArgs": [],
+      "port": 8081
+    },
+    {
+      "name": "findit-nextjs",
+      "runtimeExecutable": "C:\\Users\\henri\\Desktop\\FindIt\\web\\.claude-run-dev.bat",
+      "runtimeArgs": [],
+      "port": 3000
+    }
+  ]
+}
