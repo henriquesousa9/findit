@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   description: "Encontra salões de cabeleireiro perto de ti e marca em segundos.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="pt"
