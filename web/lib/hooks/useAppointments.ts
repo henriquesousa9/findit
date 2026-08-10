@@ -36,6 +36,9 @@ export type DayAppointment = {
   ends_at: string;
   status: "pending" | "confirmed" | "cancelled" | "completed";
   services: { name: string } | null;
+  // Readable only because of the profiles_select_salon_client policy, and
+  // only for clients who booked here — null for anyone without access.
+  client: { full_name: string | null; phone: string | null } | null;
 };
 
 export function dayBounds(day: Date) {
@@ -57,7 +60,7 @@ export function useSalonDayAppointments(salonId: string | undefined, day: Date) 
     queryFn: async () => {
       const { data, error } = await supabase
         .from("appointments")
-        .select("id, staff_id, starts_at, ends_at, status, services(name)")
+        .select("id, staff_id, starts_at, ends_at, status, services(name), client:profiles(full_name, phone)")
         .eq("salon_id", salonId as string)
         .gte("starts_at", start.toISOString())
         .lt("starts_at", end.toISOString())

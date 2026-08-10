@@ -96,7 +96,9 @@ export default function StaffAppointmentsPage() {
       {selected ? (
         <div className="mt-4 flex flex-wrap items-center gap-4 rounded-xl border border-neutral-200 bg-white p-4">
           <div>
-            <p className="font-medium text-neutral-900">{selected.services?.name ?? "Serviço"}</p>
+            <p className="font-medium text-neutral-900">
+              {selected.client?.full_name ?? "Cliente"} · {selected.services?.name ?? "Serviço"}
+            </p>
             <p className="text-sm text-neutral-500">
               {new Date(selected.starts_at).toLocaleString("pt-PT", {
                 weekday: "short",
@@ -106,6 +108,7 @@ export default function StaffAppointmentsPage() {
                 minute: "2-digit",
               })}{" "}
               · {STATUS_LABEL[selected.status]}
+              {selected.client?.phone ? ` · ${selected.client.phone}` : ""}
             </p>
           </div>
 

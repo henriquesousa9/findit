@@ -7,6 +7,9 @@ export type OwnerAppointment = {
   ends_at: string;
   status: "pending" | "confirmed" | "cancelled" | "completed";
   services: { name: string } | null;
+  // Readable only via the profiles_select_salon_client policy, and only for
+  // clients who booked at this salon.
+  client: { full_name: string | null; phone: string | null } | null;
 };
 
 // RLS on appointments already scopes rows to appointments belonging to a
@@ -19,7 +22,7 @@ export function useOwnerAppointments(salonId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("appointments")
-        .select("id, starts_at, ends_at, status, services(name)")
+        .select("id, starts_at, ends_at, status, services(name), client:profiles(full_name, phone)")
         .eq("salon_id", salonId as string)
         .order("starts_at");
       if (error) throw error;

@@ -39,11 +39,14 @@ export function useMyStaffAppointments(staffIds: string[]) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("appointments")
-        .select("*, services(name)")
+        .select("*, services(name), client:profiles(full_name, phone)")
         .in("staff_id", staffIds)
         .order("starts_at", { ascending: false });
       if (error) throw error;
-      return data as unknown as (Appointment & { services: { name: string } | null })[];
+      return data as unknown as (Appointment & {
+        services: { name: string } | null;
+        client: { full_name: string | null; phone: string | null } | null;
+      })[];
     },
   });
 }

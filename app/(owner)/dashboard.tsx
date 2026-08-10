@@ -50,7 +50,10 @@ export default function DashboardScreen() {
         ListEmptyComponent={!isLoading ? <Text style={styles.empty}>Sem agendamentos.</Text> : null}
         renderItem={({ item }) => (
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>{item.services?.name ?? "Serviço"}</Text>
+            <Text style={styles.cardTitle}>
+              {item.client?.full_name ? `${item.client.full_name} · ` : ""}
+              {item.services?.name ?? "Serviço"}
+            </Text>
             <Text style={styles.cardSubtitle}>
               {new Date(item.starts_at).toLocaleString("pt-PT", {
                 weekday: "short",

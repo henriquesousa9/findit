@@ -209,7 +209,13 @@ export function DaySchedule({
                       key={appointment.id}
                       type="button"
                       onClick={() => onSelect?.(appointment)}
-                      title={`${appointment.services?.name ?? "Serviço"} · ${STATUS_LABEL[appointment.status]}`}
+                      title={[
+                        appointment.client?.full_name,
+                        appointment.services?.name ?? "Serviço",
+                        STATUS_LABEL[appointment.status],
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
                       style={{ top, height }}
                       className={`absolute inset-x-1 overflow-hidden rounded-lg border px-2 py-1 text-left text-xs ${
                         STATUS_STYLE[appointment.status]
@@ -217,6 +223,7 @@ export function DaySchedule({
                     >
                       <span className="block font-medium">
                         {start.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}
+                        {appointment.client?.full_name ? ` · ${appointment.client.full_name}` : ""}
                       </span>
                       <span className="block truncate">{appointment.services?.name ?? "Serviço"}</span>
                     </button>
