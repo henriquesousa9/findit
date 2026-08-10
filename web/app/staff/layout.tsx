@@ -3,7 +3,7 @@ import { AreaNav } from "@/components/area-nav";
 
 const LINKS = [
   { href: "/staff", label: "Horário" },
-  { href: "/staff/appointments", label: "Agendamentos" },
+  { href: "/staff/appointments", label: "Agenda" },
 ];
 
 export default async function StaffLayout({ children }: { children: React.ReactNode }) {
