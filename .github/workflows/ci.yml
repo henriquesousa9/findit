@@ -20,7 +20,7 @@ jobs:
       - run: npx tsc --noEmit -p .
 
   web:
-    name: Web (Next.js) — typecheck + lint
+    name: Web (Next.js) — typecheck + lint + build
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -35,6 +35,12 @@ jobs:
       - run: npm ci
       - run: npx tsc --noEmit -p .
       - run: npm run lint
+      # Catches what the two above cannot: server-only code leaking into a
+      # client bundle, missing Suspense around URL hooks, prerender errors.
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
 
   database:
     name: Database — pgTAP tests

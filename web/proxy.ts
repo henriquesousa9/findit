@@ -30,18 +30,22 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-  const isDashboard = pathname.startsWith("/dashboard");
+  const PROTECTED = ["/dashboard", "/staff", "/admin", "/app-only", "/home"];
+  const isProtected = PROTECTED.some((prefix) => pathname.startsWith(prefix));
   const isAuthPage = pathname === "/login" || pathname === "/signup";
 
-  if (isDashboard && !user) {
+  if (isProtected && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
+  // Deliberately /home and not /dashboard: the proxy only knows *that*
+  // someone is signed in, not their role, and reading the profile here would
+  // mean a database round-trip on every single request.
   if (isAuthPage && user) {
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
+    url.pathname = "/home";
     return NextResponse.redirect(url);
   }
 

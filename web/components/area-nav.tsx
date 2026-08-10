@@ -2,24 +2,29 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useAuth } from "@/lib/hooks/useAuth";
+import { createClient } from "@/lib/supabase/client";
 
-const LINKS = [
-  { href: "/dashboard", label: "Visão geral" },
-  { href: "/dashboard/salon", label: "Salão" },
-  { href: "/dashboard/staff", label: "Staff" },
-  { href: "/dashboard/services", label: "Serviços" },
-  { href: "/dashboard/schedule", label: "Horário" },
-  { href: "/dashboard/appointments", label: "Agendamentos" },
-];
+type NavLink = { href: string; label: string };
 
-export function DashboardNav({ fullName }: { fullName: string | null }) {
+// Shared sidebar for every signed-in area (owner / staff / admin). The badge
+// makes it obvious at a glance which area you're in — with several roles and
+// two apps, "where am I logged in as what?" was easy to lose track of.
+export function AreaNav({
+  title,
+  subtitle,
+  badge,
+  links,
+}: {
+  title: string;
+  subtitle: string | null;
+  badge: string;
+  links: NavLink[];
+}) {
   const pathname = usePathname();
   const router = useRouter();
-  const { signOut } = useAuth();
 
   async function handleSignOut() {
-    await signOut();
+    await createClient().auth.signOut();
     router.push("/login");
     router.refresh();
   }
@@ -27,12 +32,15 @@ export function DashboardNav({ fullName }: { fullName: string | null }) {
   return (
     <nav className="flex w-60 flex-col border-r border-neutral-200 bg-white p-4">
       <div className="mb-6 px-2">
-        <p className="text-lg font-bold">FindIt</p>
-        {fullName ? <p className="text-sm text-neutral-500">{fullName}</p> : null}
+        <p className="text-lg font-bold">{title}</p>
+        <span className="mt-1 inline-block rounded-full bg-neutral-900 px-2 py-0.5 text-xs font-medium text-white">
+          {badge}
+        </span>
+        {subtitle ? <p className="mt-1 text-sm text-neutral-500">{subtitle}</p> : null}
       </div>
 
       <div className="flex flex-1 flex-col gap-1">
-        {LINKS.map((link) => {
+        {links.map((link) => {
           const active = pathname === link.href;
           return (
             <Link
