@@ -2,7 +2,7 @@ import { useState } from "react";
 import { View, Text, TextInput, FlatList, Pressable, Image, StyleSheet, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { useSalons } from "../../src/hooks/useSalons";
-import { useNearbySalons } from "../../src/hooks/useNearbySalons";
+import { useNearbySalons, RADIUS_OPTIONS_KM, DEFAULT_RADIUS_KM } from "../../src/hooks/useNearbySalons";
 import { useFavoriteSalonIds, useToggleFavorite } from "../../src/hooks/useFavorites";
 import { notify } from "../../src/lib/alert";
 
@@ -11,8 +11,10 @@ export default function BrowseScreen() {
   const [mode, setMode] = useState<"city" | "nearby">("city");
   const router = useRouter();
 
+  const [radiusKm, setRadiusKm] = useState(DEFAULT_RADIUS_KM);
+
   const cityQuery = useSalons(city);
-  const nearby = useNearbySalons(mode === "nearby");
+  const nearby = useNearbySalons(mode === "nearby", radiusKm);
   const { data: favoriteIds } = useFavoriteSalonIds();
   const toggleFavorite = useToggleFavorite();
 
@@ -53,6 +55,21 @@ export default function BrowseScreen() {
         </Pressable>
       </View>
 
+      {mode === "nearby" ? (
+        <View style={styles.radiusRow}>
+          <Text style={styles.radiusLabel}>Até</Text>
+          {RADIUS_OPTIONS_KM.map((km) => (
+            <Pressable
+              key={km}
+              style={[styles.radiusChip, radiusKm === km && styles.radiusChipSelected]}
+              onPress={() => setRadiusKm(km)}
+            >
+              <Text style={radiusKm === km ? styles.radiusChipTextSelected : styles.radiusChipText}>{km} km</Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+
       {mode === "nearby" && nearby.permissionDenied ? (
         <Text style={styles.error}>Sem permissão de localização — ativa-a nas definições para usar isto.</Text>
       ) : null}
@@ -64,7 +81,15 @@ export default function BrowseScreen() {
         data={salons}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ gap: 8, paddingVertical: 8 }}
-        ListEmptyComponent={!isLoading ? <Text style={styles.empty}>Nenhum salão encontrado.</Text> : null}
+        ListEmptyComponent={
+          !isLoading ? (
+            <Text style={styles.empty}>
+              {mode === "nearby"
+                ? `Nenhum salão a menos de ${radiusKm} km. Tenta aumentar a distância.`
+                : "Nenhum salão encontrado."}
+            </Text>
+          ) : null
+        }
         renderItem={({ item }) => {
           const isFavorite = favoriteIds?.has(item.id) ?? false;
           return (
@@ -101,6 +126,12 @@ const styles = StyleSheet.create({
   nearbyButtonActive: { backgroundColor: "#111", borderColor: "#111" },
   nearbyButtonText: { color: "#333", fontWeight: "600", fontSize: 13 },
   nearbyButtonTextActive: { color: "#fff", fontWeight: "600", fontSize: 13 },
+  radiusRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 10 },
+  radiusLabel: { fontSize: 13, color: "#555", marginRight: 2 },
+  radiusChip: { borderWidth: 1, borderColor: "#ccc", borderRadius: 16, paddingVertical: 5, paddingHorizontal: 10 },
+  radiusChipSelected: { backgroundColor: "#2563eb", borderColor: "#2563eb" },
+  radiusChipText: { color: "#333", fontSize: 12 },
+  radiusChipTextSelected: { color: "#fff", fontSize: 12 },
   card: { borderWidth: 1, borderColor: "#e5e5e5", borderRadius: 10, overflow: "hidden" },
   cardImage: { width: "100%", height: 120 },
   cardImagePlaceholder: { backgroundColor: "#f2f2f2" },

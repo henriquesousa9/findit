@@ -19,7 +19,12 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-export function useNearbySalons(enabled: boolean) {
+// Radii offered in the UI, in kilometres. 10 km is the default: wide enough
+// to cover a city, narrow enough that "near me" means something.
+export const RADIUS_OPTIONS_KM = [5, 10, 25, 50];
+export const DEFAULT_RADIUS_KM = 10;
+
+export function useNearbySalons(enabled: boolean, radiusKm: number = DEFAULT_RADIUS_KM) {
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [loadingLocation, setLoadingLocation] = useState(false);
@@ -54,9 +59,12 @@ export function useNearbySalons(enabled: boolean) {
     },
   });
 
+  // Sorting alone isn't "near me" — without the radius filter a salon
+  // hundreds of kilometres away still showed up, just last in the list.
   const nearby: NearbySalon[] = coords
     ? (salonsQuery.data ?? [])
         .map((s) => ({ ...s, distanceKm: haversineKm(coords.latitude, coords.longitude, s.latitude, s.longitude) }))
+        .filter((s) => s.distanceKm <= radiusKm)
         .sort((a, b) => a.distanceKm - b.distanceKm)
     : [];
 
