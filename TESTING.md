@@ -6,11 +6,13 @@ Todas com a password **`21442144`**.
 
 | Email | Role | App mobile | Web |
 |---|---|---|---|
-| `findit@teste1.com` | **Staff** | Área staff: o seu horário + os seus agendamentos | `/staff` |
+| `findit@teste1.com` | **Staff** | Área staff: vê o seu horário, gere os seus agendamentos | `/staff` |
 | `findit@teste2.com` | **Owner** (dono) | Área owner: salão, staff, serviços, horário, agenda | `/dashboard` |
 | `findit@teste3.com` | **Client** | Explorar salões, favoritos, marcar, ver marcações | ✗ (só a app) |
 
 O cliente **não tem dashboard web** — a web é para gestão. Se entrar na web, vê uma página a explicar isso, em vez de ser devolvido ao login sem aviso.
+
+**Horários**: quem define as horas de trabalho de cada profissional é o **dono** (em "Horário"). O staff vê o seu horário, mas não o altera — e isso é imposto pela base de dados, não só escondido na interface.
 
 ## Dados de exemplo já criados
 
