@@ -1,10 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { View, Text, FlatList, Pressable, StyleSheet, ActivityIndicator } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useSalonAvailability } from "../../../src/hooks/useAvailability";
 import { useSalonStaff } from "../../../src/hooks/useStaff";
+import { useAvailableSlots } from "../../../src/hooks/useAvailableSlots";
 import { useCreateAppointment } from "../../../src/hooks/useAppointments";
 import { notify } from "../../../src/lib/alert";
+
+// Sentinel for the "no preference" chip — distinct from a real staff id.
+const ANY_STAFF = "__any__";
 
 function nextDays(count: number) {
   const days: Date[] = [];
@@ -17,18 +20,6 @@ function nextDays(count: number) {
   return days;
 }
 
-function slotsForDay(day: Date, startTime: string, endTime: string) {
-  const [startH] = startTime.split(":").map(Number);
-  const [endH] = endTime.split(":").map(Number);
-  const slots: Date[] = [];
-  for (let h = startH; h < endH; h++) {
-    const slot = new Date(day);
-    slot.setHours(h, 0, 0, 0);
-    if (slot.getTime() > Date.now()) slots.push(slot);
-  }
-  return slots;
-}
-
 export default function BookingScreen() {
   const { serviceId, salonId, serviceName } = useLocalSearchParams<{
     serviceId: string;
@@ -36,29 +27,19 @@ export default function BookingScreen() {
     serviceName: string;
   }>();
   const router = useRouter();
+
   const { data: allStaff, isLoading: loadingStaff } = useSalonStaff(salonId);
   const staff = useMemo(() => (allStaff ?? []).filter((s) => s.status === "accepted"), [allStaff]);
-  const [staffId, setStaffId] = useState<string | undefined>(undefined);
 
-  useEffect(() => {
-    if (staff.length > 0 && !staffId) setStaffId(staff[0].id);
-  }, [staff, staffId]);
-
-  const { data: availability, isLoading: loadingAvailability } = useSalonAvailability(salonId, staffId);
-  const createAppointment = useCreateAppointment();
+  const [choice, setChoice] = useState<string>(ANY_STAFF);
   const [selectedDay, setSelectedDay] = useState<Date>(new Date());
-
   const days = useMemo(() => nextDays(14), []);
 
-  const slots = useMemo(() => {
-    if (!availability) return [];
-    const weekday = selectedDay.getDay();
-    const dayAvailability = availability.filter((a) => a.weekday === weekday);
-    return dayAvailability.flatMap((a) => slotsForDay(selectedDay, a.start_time, a.end_time));
-  }, [availability, selectedDay]);
+  const staffId = choice === ANY_STAFF ? undefined : choice;
+  const { data: slots, isLoading: loadingSlots } = useAvailableSlots(salonId, serviceId, selectedDay, staffId);
+  const createAppointment = useCreateAppointment();
 
   async function handleBook(slot: Date) {
-    if (!staffId) return;
     try {
       await createAppointment.mutateAsync({ salonId, serviceId, staffId, startsAt: slot });
       notify("Marcação criada", "O teu agendamento ficou pendente de confirmação.");
@@ -79,6 +60,8 @@ export default function BookingScreen() {
     );
   }
 
+  const options = [{ id: ANY_STAFF, label: "Sem preferência" }, ...staff.map((s) => ({ id: s.id, label: s.full_name }))];
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{serviceName}</Text>
@@ -86,18 +69,16 @@ export default function BookingScreen() {
       <Text style={styles.sectionLabel}>Profissional</Text>
       <FlatList
         horizontal
-        data={staff}
-        keyExtractor={(s) => s.id}
+        data={options}
+        keyExtractor={(o) => o.id}
         style={{ flexGrow: 0 }}
         contentContainerStyle={{ gap: 8 }}
         renderItem={({ item }) => (
           <Pressable
-            style={[styles.staffChip, staffId === item.id && styles.staffChipSelected]}
-            onPress={() => setStaffId(item.id)}
+            style={[styles.staffChip, choice === item.id && styles.staffChipSelected]}
+            onPress={() => setChoice(item.id)}
           >
-            <Text style={staffId === item.id ? styles.staffChipTextSelected : styles.staffChipText}>
-              {item.full_name}
-            </Text>
+            <Text style={choice === item.id ? styles.staffChipTextSelected : styles.staffChipText}>{item.label}</Text>
           </Pressable>
         )}
       />
@@ -123,22 +104,32 @@ export default function BookingScreen() {
         }}
       />
 
-      {loadingAvailability ? <ActivityIndicator /> : null}
+      {loadingSlots ? <ActivityIndicator /> : null}
 
       <FlatList
-        data={slots}
-        keyExtractor={(s) => s.toISOString()}
+        data={slots ?? []}
+        keyExtractor={(s) => s.slot}
         contentContainerStyle={{ gap: 8 }}
         ListEmptyComponent={
-          !loadingAvailability ? <Text style={styles.empty}>Sem horários disponíveis neste dia.</Text> : null
+          !loadingSlots ? <Text style={styles.empty}>Sem horários disponíveis neste dia.</Text> : null
         }
-        renderItem={({ item }) => (
-          <Pressable style={styles.slot} onPress={() => handleBook(item)} disabled={createAppointment.isPending}>
-            <Text style={styles.slotText}>
-              {item.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}
-            </Text>
-          </Pressable>
-        )}
+        renderItem={({ item }) => {
+          const start = new Date(item.slot);
+          return (
+            <Pressable
+              style={styles.slot}
+              onPress={() => handleBook(start)}
+              disabled={createAppointment.isPending}
+            >
+              <Text style={styles.slotText}>
+                {start.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}
+              </Text>
+              {choice === ANY_STAFF && item.free_staff > 1 ? (
+                <Text style={styles.slotHint}>{item.free_staff} profissionais livres</Text>
+              ) : null}
+            </Pressable>
+          );
+        }}
       />
     </View>
   );
@@ -158,5 +149,6 @@ const styles = StyleSheet.create({
   dayChipTextSelected: { color: "#fff" },
   slot: { borderWidth: 1, borderColor: "#e5e5e5", borderRadius: 10, padding: 14, alignItems: "center" },
   slotText: { fontSize: 16, fontWeight: "600" },
+  slotHint: { fontSize: 12, color: "#888", marginTop: 2 },
   empty: { color: "#888", marginTop: 16 },
 });

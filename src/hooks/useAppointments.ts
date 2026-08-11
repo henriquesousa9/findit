@@ -51,20 +51,32 @@ export function useMyStaffAppointments(staffIds: string[]) {
   });
 }
 
+// staffId undefined means "no preference" — the server then picks the free
+// professional with the fewest bookings that day.
 export function useCreateAppointment() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { salonId: string; serviceId: string; staffId: string; startsAt: Date }) => {
-      const { data, error } = await supabase.rpc("create_appointment", {
-        p_salon_id: input.salonId,
-        p_service_id: input.serviceId,
-        p_staff_id: input.staffId,
-        p_starts_at: input.startsAt.toISOString(),
-      });
+    mutationFn: async (input: { salonId: string; serviceId: string; staffId?: string; startsAt: Date }) => {
+      const { data, error } = input.staffId
+        ? await supabase.rpc("create_appointment", {
+            p_salon_id: input.salonId,
+            p_service_id: input.serviceId,
+            p_staff_id: input.staffId,
+            p_starts_at: input.startsAt.toISOString(),
+          })
+        : await supabase.rpc("create_appointment_any_staff", {
+            p_salon_id: input.salonId,
+            p_service_id: input.serviceId,
+            p_starts_at: input.startsAt.toISOString(),
+          });
       if (error) throw error;
       return data as Appointment;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["appointments"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      // The hour just taken must stop being offered.
+      queryClient.invalidateQueries({ queryKey: ["available-slots"] });
+    },
   });
 }
 
